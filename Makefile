@@ -6,12 +6,18 @@ BUILD   = build
 
 all: $(BUILD)/libhobo.a
 
-$(BUILD)/libhobo.a: $(BUILD)/arena.o
+$(BUILD)/libhobo.a: $(BUILD)/arena.o $(BUILD)/test.o $(BUILD)/check.o
 	$(AR) $(ARFLAGS) $@ $^
 
 $(BUILD)/arena.o: src/arena.c include/hobo/arena.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD)/test.o: src/test.c include/hobo/test.h include/hobo/check.h | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/check.o: src/check.c include/hobo/check.h | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+ 
 test: $(BUILD)/test_arena
 	./$(BUILD)/test_arena
 

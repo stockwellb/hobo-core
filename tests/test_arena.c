@@ -1,30 +1,69 @@
-#include <assert.h>
 #include <hobo/arena.h>
+#include <hobo/check.h>
+#include <hobo/test.h>
 #include <stdalign.h>
 #include <stdio.h>
 
-int main(void) {
-  hobo_arena a;
+typedef struct {
+  hobo_arena arena;
+} arena_ctx;
 
-  /* init should succeed and report true */
-  assert(hobo_arena_init(&a, 1024));
-
-  /* the struct should be set up correctly */
-  assert(a.base != NULL);
-  assert(a.capacity == 1024);
-  assert(a.offset == 0);
-
-  void *p = hobo_arena_alloc(&a, 64);
-  assert(p != NULL);
-  assert(a.offset == 64);
-  assert((size_t)p % alignof(max_align_t) == 0);
-
-  void *q = hobo_arena_alloc_aligned(&a, 10, 64);
-  assert(q != NULL);
-  assert((size_t)q % 64 == 0);
-
-  assert(hobo_arena_alloc(&a, 100000) == NULL);
-
-  printf("test_arena: init ok\n");
-  return 0;
+static void *arena_suite_setup(void) {
+  arena_ctx *ctx = malloc(sizeof(*ctx));
+  hobo_arena_init(&ctx->arena, 1024);
+  return ctx;
 }
+
+static void arena_suite_teardown(void *raw) {
+  arena_ctx *ctx = raw;
+  free(ctx);
+}
+
+static hobo_test_result test_arena_init(void *raw) {
+  arena_ctx *ctx = raw;
+  CHECK(ctx->arena.base != NULL);
+  CHECK(ctx->arena.capacity == 1024);
+  CHECK(ctx->arena.offset == 0);
+  return HOBO_CHECK_RESULT();
+}
+
+static hobo_test_result test_arena_alloc(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p = hobo_arena_alloc_aligned(&ctx->arena, 10, 64);
+  CHECK(p != NULL);
+  CHECK(ctx->arena.offset = 64);
+  CHECK((size_t)p % 64 == 0);
+  return HOBO_CHECK_RESULT();
+}
+
+static hobo_test_result test_arena_alloc_aligned(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p = hobo_arena_alloc(&ctx->arena, 64);
+  CHECK(p != NULL);
+  CHECK(ctx->arena.offset = 64);
+  CHECK((size_t)p % alignof(max_align_t) == 0);
+  return HOBO_CHECK_RESULT();
+}
+
+static hobo_test_result test_arena_alloc_overflow(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p = hobo_arena_alloc(&ctx->arena, 100000);
+  CHECK(p == NULL);
+  return HOBO_CHECK_RESULT();
+}
+
+static hobo_test_case arena_tests[] = {
+    {"test_arena_init", NULL, test_arena_init, NULL, 0},
+    {"test_arena_alloc", NULL, test_arena_alloc, NULL, 0},
+    {"test_arena_alloc_aligned", NULL, test_arena_alloc_aligned, NULL, 0},
+    {"test_arena_alloc_overflow", NULL, test_arena_alloc_overflow, NULL, 0},
+    {0}};
+
+static hobo_test_suite arena_suite = {
+    .name = "arena",
+    .suite_setup = arena_suite_setup,
+    .suite_teardown = arena_suite_teardown,
+    .tests = arena_tests,
+};
+
+int main(void) { return hobo_test_run_suite(&arena_suite); }
