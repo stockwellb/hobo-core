@@ -12,4 +12,8 @@ typedef struct hobo_arena {
 
 bool hobo_arena_init(hobo_arena *arena, size_t capacity);
 
+void *hobo_arena_alloc(hobo_arena *arena, size_t size);
+
+void *hobo_arena_alloc_aligned(hobo_arena *arena, size_t size, size_t align);
+
 #endif
