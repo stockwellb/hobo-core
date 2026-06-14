@@ -8,69 +8,54 @@ static hobo_check_record records[64];
 int hobo_test_run_suite(hobo_test_suite *suite) {
   printf("TAP version 13\n");
 
-  int count = 0;
-  hobo_test_case *tp = suite->tests;
-
-  while (tp->run != NULL) {
+  size_t count = 0;
+  for (hobo_test_case *test = suite->tests; test->run != NULL; test++) {
     count++;
-    tp++;
-  };
+  }
 
-  printf("1..%d\n", count);
+  printf("1..%zu\n", count);
 
   void *ctx = NULL;
-
-  // suite setup
   if (suite->suite_setup != NULL) {
     ctx = suite->suite_setup();
   }
 
-  unsigned int failed = 0;
+  size_t failed = 0;
+  size_t test_number = 1;
 
-  hobo_test_case *t = suite->tests;
-  unsigned n = 1;
-
-  while (t->run != NULL) {
-
+  for (hobo_test_case *test = suite->tests; test->run != NULL; test++) {
     hobo_check_begin(records, sizeof records / sizeof records[0]);
 
-    // setup
-    if (t->setup != NULL) {
-      t->setup(ctx);
+    if (test->setup != NULL) {
+      test->setup(ctx);
     }
 
-    // run test
-    bool result = t->run(ctx);
+    bool result = test->run(ctx);
 
-    // teardown
-    if (t->teardown != NULL) {
-      t->teardown(ctx);
+    if (test->teardown != NULL) {
+      test->teardown(ctx);
     }
 
-    // render
     if (result) {
-      printf("ok %u - %s\n", n, t->name);
+      printf("ok %zu - %s\n", test_number, test->name);
     } else {
       failed++;
-      printf("not ok %u - %s\n", n, t->name);
+      printf("not ok %zu - %s\n", test_number, test->name);
     }
 
     const hobo_check_sink *sink = hobo_check_get();
 
-    size_t i;
-    for (i = 0; i < sink->count; i++) {
-      const hobo_check_record *r = &sink->records[i];
-      if (!r->passed) {
-        printf("# %s - %s:%d\n", r->expr, r->file, r->line);
+    for (size_t i = 0; i < sink->count; i++) {
+      const hobo_check_record *record = &sink->records[i];
+
+      if (!record->passed) {
+        printf("# %s - %s:%d\n", record->expr, record->file, record->line);
       }
     }
 
-    // next
-    n++;
-    t++;
+    test_number++;
   }
 
-  // suite teardown
   if (suite->suite_teardown != NULL) {
     suite->suite_teardown(ctx);
   }
