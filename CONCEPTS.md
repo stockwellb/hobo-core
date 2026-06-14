@@ -1,18 +1,27 @@
 # C Concepts in hobo-core
 
 This document is a guided tour of the C programming concepts used in this
-library, written for someone learning C. **hobo** is a tiny unit-testing
-framework. Reading its source is a good way to see real C idioms in a small
-space.
+library, written for someone learning C.
 
-The library has four pieces:
+**hobo-core** is a small foundation ("standard library" / project-bootstrap)
+library for C — a place for the basic building blocks a C project reaches for
+before anything else. Today it provides two things: an **arena allocator** and a
+small **unit-testing framework**. More foundational pieces may be added over
+time; testing and arena allocation are simply what exists now.
 
-| File | What it does |
-|------|--------------|
-| `arena.c` / `arena.h` | A simple memory allocator (an "arena"). |
-| `check.c` / `check.h` | Records the result of each `CHECK(...)` in a test. |
-| `test.c` / `test.h` | Runs a suite of tests and tallies pass/fail/skip. |
-| `tap_reporter.c` / `tap_reporter.h` | Prints results in the TAP format. |
+Because the testing framework exercises every other concept in the library, this
+tour follows it as a thread — using `CHECK`, test suites, and the reporter as a
+way to walk through real C idioms in a small space. Don't read that as "hobo-core
+is a testing library"; the tests are the *tour guide*, not the destination.
+
+The current pieces are:
+
+| File | What it does | Part of |
+|------|--------------|---------|
+| `arena.c` / `arena.h` | A simple memory allocator (an "arena"). | Arena allocator |
+| `check.c` / `check.h` | Records the result of each `CHECK(...)` in a test. | Testing framework |
+| `test.c` / `test.h` | Runs a suite of tests and tallies pass/fail/skip. | Testing framework |
+| `tap_reporter.c` / `tap_reporter.h` | Prints results in the TAP format. | Testing framework |
 
 The concepts are split into two groups:
 
