@@ -1,9 +1,22 @@
 #include "hobo/test.h"
 #include "hobo/check.h"
+#include <stddef.h>
 #include <stdio.h>
 
+static hobo_check_record records[64];
+
 int hobo_test_run_suite(hobo_test_suite *suite) {
-  printf("=== %s ===\n", suite->name);
+  printf("TAP version 13\n");
+
+  int count = 0;
+  hobo_test_case *tp = suite->tests;
+
+  while (tp->run != NULL) {
+    count++;
+    tp++;
+  };
+
+  printf("%d..%d\n", 1, count);
 
   void *ctx = NULL;
 
@@ -12,19 +25,14 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
     ctx = suite->suite_setup();
   }
 
-  unsigned int passed = 0, failed = 0, skipped = 0;
+  unsigned int failed = 0;
 
   hobo_test_case *t = suite->tests;
-  while (t->run != NULL) {
-    printf("--- %s ---\n", t->name);
-    // check for skipped
-    if (t->skip) {
-      printf("[SKIP]\n");
-      skipped++;
-      continue;
-    };
+  unsigned n = 1;
 
-    HOBO_CHECK_RESET();
+  while (t->run != NULL) {
+
+    hobo_check_begin(records, sizeof records / sizeof records[0]);
 
     // setup
     if (t->setup != NULL) {
@@ -39,20 +47,28 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
       t->teardown(ctx);
     }
 
-    // evaluate result
+    // render
     switch (result) {
-    case TEST_PASS:
-      passed++;
-      break;
     case TEST_FAIL:
       failed++;
+      printf("not ok %u - %s\n", n, t->name);
       break;
-    case TEST_SKIP:
-      skipped++;
-      break;
+    case TEST_PASS:
+      printf("ok %u - %s\n", n, t->name);
+    }
+
+    const hobo_check_sink *sink = hobo_check_get();
+
+    size_t i;
+    for (i = 0; i < sink->count; i++) {
+      const hobo_check_record *r = &sink->records[i];
+      if (!r->passed) {
+        printf("#%s - %s:%d\n", r->expr, r->file, r->line);
+      }
     }
 
     // next
+    n++;
     t++;
   }
 
@@ -61,6 +77,5 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
     suite->suite_teardown(ctx);
   }
 
-  printf("passed: %d, failed %d, skipped %d\n", passed, failed, skipped);
   return failed != 0;
 }

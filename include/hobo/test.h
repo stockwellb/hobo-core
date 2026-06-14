@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-typedef enum { TEST_PASS, TEST_FAIL, TEST_SKIP } hobo_test_result;
+typedef enum { TEST_PASS, TEST_FAIL } hobo_test_result;
 
 typedef struct {
   const char *name;
