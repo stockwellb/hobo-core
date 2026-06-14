@@ -1,5 +1,6 @@
 #include <hobo/arena.h>
 #include <hobo/check.h>
+#include <hobo/tap_reporter.h>
 #include <hobo/test.h>
 #include <stdalign.h>
 #include <stdint.h>
@@ -78,4 +79,7 @@ static hobo_test_suite arena_suite = {
     .tests = arena_tests,
 };
 
-int main(void) { return hobo_test_run_suite(&arena_suite); }
+int main(void) {
+  hobo_reporter reporter = hobo_tap_reporter(stdout);
+  return hobo_test_run_suite(&arena_suite, &reporter);
+}

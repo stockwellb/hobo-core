@@ -1,7 +1,7 @@
-#include "hobo/test.h"
-#include "hobo/check.h"
+#include <hobo/check.h>
+#include <hobo/tap_reporter.h>
+#include <hobo/test.h>
 #include <stddef.h>
-#include <stdio.h>
 
 /** Per-test check capacity.
  * Reset at the start of every test.
@@ -12,30 +12,34 @@
  */
 static hobo_check_record records[265];
 
-int hobo_test_run_suite(hobo_test_suite *suite) {
-  printf("TAP version 13\n");
-
+int hobo_test_run_suite(hobo_test_suite *suite, const hobo_reporter *reporter) {
   size_t count = 0;
   for (hobo_test_case *test = suite->tests; test->run != NULL; test++) {
     count++;
   }
 
-  printf("1..%zu\n", count);
+  reporter->suite_begin(reporter->state, suite, count);
 
   void *ctx = NULL;
   if (suite->suite_setup != NULL) {
     ctx = suite->suite_setup();
   }
 
+  size_t passed = 0;
   size_t failed = 0;
-  size_t test_number = 1;
+  size_t skipped = 0;
 
   for (hobo_test_case *test = suite->tests; test->run != NULL; test++) {
     hobo_check_begin(records, sizeof records / sizeof records[0]);
 
+    hobo_test_result result;
+
     if (test->skip) {
-      printf("ok %zu - %s # SKIP %s\n", test_number, test->name, test->skip);
-      test_number++;
+      result.kind = HOBO_TEST_SKIP;
+      result.skip_reason = test->skip;
+      result.checks = NULL;
+      skipped++;
+      reporter->test_end(reporter->state, test, &result);
       continue;
     }
 
@@ -43,35 +47,36 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
       test->setup(ctx);
     }
 
-    bool result = test->run(ctx);
+    bool ok = test->run(ctx);
 
     if (test->teardown != NULL) {
       test->teardown(ctx);
     }
 
-    if (result && !hobo_check_failed()) {
-      printf("ok %zu - %s\n", test_number, test->name);
+    if (ok && !hobo_check_failed()) {
+      result.kind = HOBO_TEST_PASS;
+      passed++;
     } else {
+      result.kind = HOBO_TEST_FAIL;
       failed++;
-      printf("not ok %zu - %s\n", test_number, test->name);
     }
+    result.skip_reason = NULL;
+    result.checks = hobo_check_get();
 
-    const hobo_check_sink *sink = hobo_check_get();
-
-    for (size_t i = 0; i < sink->count; i++) {
-      const hobo_check_record *record = &sink->records[i];
-
-      if (!record->passed) {
-        printf("# %s - %s:%d\n", record->expr, record->file, record->line);
-      }
-    }
-
-    test_number++;
+    reporter->test_end(reporter->state, test, &result);
   }
 
   if (suite->suite_teardown != NULL) {
     suite->suite_teardown(ctx);
   }
+
+  hobo_test_summary summary = {
+      .total = count,
+      .passed = passed,
+      .failed = failed,
+      .skipped = skipped,
+  };
+  reporter->suite_end(reporter->state, &summary);
 
   return failed != 0;
 }
