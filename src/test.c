@@ -3,7 +3,14 @@
 #include <stddef.h>
 #include <stdio.h>
 
-static hobo_check_record records[64];
+/** Per-test check capacity.
+ * Reset at the start of every test.
+ * This is the max CHECKs in a SINGLE test, not the whole suite.
+ * 256 is deliberately generous.
+ * Tests with more than 265 checks should be split.
+ * Any overflow is dropped.
+ */
+static hobo_check_record records[265];
 
 int hobo_test_run_suite(hobo_test_suite *suite) {
   printf("TAP version 13\n");
@@ -36,7 +43,7 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
       test->teardown(ctx);
     }
 
-    if (result) {
+    if (result && !hobo_check_failed()) {
       printf("ok %zu - %s\n", test_number, test->name);
     } else {
       failed++;
