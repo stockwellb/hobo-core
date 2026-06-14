@@ -19,3 +19,14 @@ change in prose** and let the human write it. Do not use Edit, Write, or any
 other file-modifying tool on source files. (This `CLAUDE.md` and other docs may
 be edited only when the human explicitly asks.)
 
+## GitHub Issue Style for New Features
+
+Feature issues should follow this structure:
+
+- `## Summary` — One-line description of what to implement
+- `## Description` — Explanation of the feature and its benefits
+- `## Proposed API` — Code block showing the interface
+- `## Implementation Notes` — Technical considerations
+- `## References` — Links to relevant docs or prior art (if applicable)
+- `## Acceptance Criteria` — Checkbox list (`- [ ]`) of requirements
+
