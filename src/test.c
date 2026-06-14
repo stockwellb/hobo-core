@@ -33,6 +33,12 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
   for (hobo_test_case *test = suite->tests; test->run != NULL; test++) {
     hobo_check_begin(records, sizeof records / sizeof records[0]);
 
+    if (test->skip) {
+      printf("ok %zu - %s # SKIP %s\n", test_number, test->name, test->skip);
+      test_number++;
+      continue;
+    }
+
     if (test->setup != NULL) {
       test->setup(ctx);
     }

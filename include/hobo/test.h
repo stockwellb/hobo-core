@@ -6,7 +6,7 @@ typedef struct {
   void (*setup)(void *ctx);
   bool (*run)(void *ctx);
   void (*teardown)(void *ctx);
-  int skip;
+  const char *skip;
 
 } hobo_test_case;
 
@@ -18,4 +18,3 @@ typedef struct {
 } hobo_test_suite;
 
 int hobo_test_run_suite(hobo_test_suite *suite);
-void hobo_test_run_all(void);
