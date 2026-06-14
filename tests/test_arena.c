@@ -19,7 +19,7 @@ static void arena_suite_teardown(void *raw) {
   free(ctx);
 }
 
-static hobo_test_result test_arena_init(void *raw) {
+static bool test_arena_init(void *raw) {
   arena_ctx *ctx = raw;
   CHECK(ctx->arena.base != NULL);
   CHECK(ctx->arena.capacity == 1024);
@@ -27,7 +27,7 @@ static hobo_test_result test_arena_init(void *raw) {
   return HOBO_CHECK_RESULT();
 }
 
-static hobo_test_result test_arena_alloc(void *raw) {
+static bool test_arena_alloc(void *raw) {
   arena_ctx *ctx = raw;
   void *p = hobo_arena_alloc_aligned(&ctx->arena, 10, 64);
   CHECK(p != NULL);
@@ -36,7 +36,7 @@ static hobo_test_result test_arena_alloc(void *raw) {
   return HOBO_CHECK_RESULT();
 }
 
-static hobo_test_result test_arena_alloc_aligned(void *raw) {
+static bool test_arena_alloc_aligned(void *raw) {
   arena_ctx *ctx = raw;
   void *p = hobo_arena_alloc(&ctx->arena, 64);
   CHECK(p != NULL);
@@ -45,7 +45,7 @@ static hobo_test_result test_arena_alloc_aligned(void *raw) {
   return HOBO_CHECK_RESULT();
 }
 
-static hobo_test_result test_arena_alloc_overflow(void *raw) {
+static bool test_arena_alloc_overflow(void *raw) {
   arena_ctx *ctx = raw;
   void *p = hobo_arena_alloc(&ctx->arena, 100000);
   CHECK(p == NULL);

@@ -24,7 +24,7 @@ const hobo_check_sink *hobo_check_get(void);
 
 void test_check(bool passed, const char *expr, const char *file, int line);
 
-#define HOBO_CHECK_RESULT() (hobo_check_failed() ? TEST_FAIL : TEST_PASS)
+#define HOBO_CHECK_RESULT() (!hobo_check_failed())
 #define CHECK(cond) test_check(!!(cond), #cond, __FILE__, __LINE__)
 
 #endif

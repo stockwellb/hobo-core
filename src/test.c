@@ -16,7 +16,7 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
     tp++;
   };
 
-  printf("%d..%d\n", 1, count);
+  printf("1..%d\n", count);
 
   void *ctx = NULL;
 
@@ -40,7 +40,7 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
     }
 
     // run test
-    hobo_test_result result = t->run(ctx);
+    bool result = t->run(ctx);
 
     // teardown
     if (t->teardown != NULL) {
@@ -48,13 +48,11 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
     }
 
     // render
-    switch (result) {
-    case TEST_FAIL:
+    if (result) {
+      printf("ok %u - %s\n", n, t->name);
+    } else {
       failed++;
       printf("not ok %u - %s\n", n, t->name);
-      break;
-    case TEST_PASS:
-      printf("ok %u - %s\n", n, t->name);
     }
 
     const hobo_check_sink *sink = hobo_check_get();
@@ -63,7 +61,7 @@ int hobo_test_run_suite(hobo_test_suite *suite) {
     for (i = 0; i < sink->count; i++) {
       const hobo_check_record *r = &sink->records[i];
       if (!r->passed) {
-        printf("#%s - %s:%d\n", r->expr, r->file, r->line);
+        printf("# %s - %s:%d\n", r->expr, r->file, r->line);
       }
     }
 
