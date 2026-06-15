@@ -3,6 +3,7 @@
 #include <hobo/tap_reporter.h>
 #include <hobo/test.h>
 #include <stdalign.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -43,16 +44,17 @@ static bool test_arena_alloc(void *raw) {
   void *p = hobo_arena_alloc(&ctx->arena, 64);
   CHECK(p != NULL);
   CHECK(ctx->arena.offset == 64);
-  CHECK((uintptr_t)p % 64 == 0);
+  CHECK((uintptr_t)p % alignof(max_align_t) == 0);
   return HOBO_CHECK_RESULT();
 }
 
 static bool test_arena_alloc_aligned(void *raw) {
   arena_ctx *ctx = raw;
+  (void)hobo_arena_alloc_aligned(&ctx->arena, 10, 64);
   void *p = hobo_arena_alloc_aligned(&ctx->arena, 10, 64);
   CHECK(p != NULL);
-  CHECK(ctx->arena.offset == 10);
-  CHECK((uintptr_t)p % alignof(max_align_t) == 0);
+  CHECK(ctx->arena.offset == 64 + 10);
+  CHECK((uintptr_t)p % 64 == 0);
   return HOBO_CHECK_RESULT();
 }
 
