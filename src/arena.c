@@ -3,6 +3,11 @@
 #include <stdlib.h>
 
 bool hobo_arena_init(hobo_arena *arena, size_t capacity) {
+  if (capacity == 0) {
+    arena->base = NULL;
+    return false;
+  }
+
   arena->base = malloc(capacity);
 
   if (arena->base == NULL) {
@@ -18,11 +23,11 @@ bool hobo_arena_init(hobo_arena *arena, size_t capacity) {
 void *hobo_arena_alloc_aligned(hobo_arena *arena, size_t size, size_t align) {
   size_t aligned = (arena->offset + align - 1) & ~(align - 1);
 
-  if (aligned > arena->capacity || size > arena->capacity - aligned) {
+  if (size == 0) {
     return NULL;
   }
 
-  if (aligned + size > arena->capacity) {
+  if (aligned > arena->capacity || size > arena->capacity - aligned) {
     return NULL;
   }
 
