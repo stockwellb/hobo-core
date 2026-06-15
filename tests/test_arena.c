@@ -65,6 +65,50 @@ static bool test_arena_alloc_overflow(void *raw) {
   return HOBO_CHECK_RESULT();
 }
 
+static bool test_arena_seq_alloc(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p1 = hobo_arena_alloc(&ctx->arena, 2);
+  CHECK(p1 != NULL);
+  CHECK(ctx->arena.offset == 2);
+  void *p2 = hobo_arena_alloc(&ctx->arena, 2);
+  size_t a = alignof(max_align_t);
+  size_t expected = ((2 + a - 1) & ~(a - 1)) + 2;
+  CHECK(p2 != NULL);
+  CHECK(ctx->arena.offset == expected);
+  CHECK(p1 != p2);
+  return HOBO_CHECK_RESULT();
+}
+
+static bool test_arena_full_alloc(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p1 = hobo_arena_alloc(&ctx->arena, 1024);
+  CHECK(p1 != NULL);
+  CHECK(ctx->arena.offset == 1024);
+  return HOBO_CHECK_RESULT();
+}
+
+static bool test_arena_alloc_overflow_by_one(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p = hobo_arena_alloc(&ctx->arena, 1025);
+  CHECK(p == NULL);
+  return HOBO_CHECK_RESULT();
+}
+
+static bool test_arena_alloc_zero(void *raw) {
+  arena_ctx *ctx = raw;
+  void *p = hobo_arena_alloc(&ctx->arena, 0);
+  CHECK(p == NULL);
+  return HOBO_CHECK_RESULT();
+}
+
+static bool test_arena_zero_init(void *raw) {
+  (void)raw;
+  hobo_arena zero_arena;
+  hobo_arena_init(&zero_arena, 0);
+  CHECK(zero_arena.base == NULL);
+  return HOBO_CHECK_RESULT();
+}
+
 static hobo_test_case arena_tests[] = {
     {"test_arena_init", test_setup, test_arena_init, test_teardown, 0},
     {"test_arena_alloc", test_setup, test_arena_alloc, test_teardown, 0},
@@ -72,6 +116,15 @@ static hobo_test_case arena_tests[] = {
      test_teardown, 0},
     {"test_arena_alloc_overflow", test_setup, test_arena_alloc_overflow,
      test_teardown, 0},
+    {"test_arena_seq_alloc", test_setup, test_arena_seq_alloc, test_teardown,
+     0},
+    {"test_arena_full_alloc", test_setup, test_arena_full_alloc, test_teardown,
+     0},
+    {"test_arena_alloc_overflow_by_one", test_setup,
+     test_arena_alloc_overflow_by_one, test_teardown, 0},
+    {"test_arena_alloc_zero", test_setup, test_arena_alloc_zero, test_teardown,
+     0},
+    {"test_arena_zero_init", NULL, test_arena_zero_init, NULL, 0},
     {0}};
 
 static hobo_test_suite arena_suite = {
