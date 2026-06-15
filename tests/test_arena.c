@@ -28,12 +28,12 @@ static void test_setup(void *raw) {
 
 static void test_teardown(void *raw) {
   arena_ctx *ctx = raw;
-  free(ctx->arena.base);
+  free(ctx->arena.buf);
 }
 
 static bool test_arena_init(void *raw) {
   arena_ctx *ctx = raw;
-  CHECK(ctx->arena.base != NULL);
+  CHECK(ctx->arena.buf != NULL);
   CHECK(ctx->arena.capacity == 1024);
   CHECK(ctx->arena.offset == 0);
   return HOBO_CHECK_RESULT();
@@ -105,7 +105,7 @@ static bool test_arena_zero_init(void *raw) {
   (void)raw;
   hobo_arena zero_arena;
   hobo_arena_init(&zero_arena, 0);
-  CHECK(zero_arena.base == NULL);
+  CHECK(zero_arena.buf == NULL);
   return HOBO_CHECK_RESULT();
 }
 
