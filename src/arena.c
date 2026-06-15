@@ -7,7 +7,7 @@
 
 static void *arena_alloc(hobo_allocator *self, size_t size) {
   hobo_arena *arena = (hobo_arena *)self;
-  return hobo_arena_alloc_aligned(arena, size, alignof(max_align_t));
+  return hobo_arena_alloc(arena, size);
 }
 
 static void *arena_realloc(hobo_allocator *self, void *ptr, size_t old_size,
