@@ -7,10 +7,10 @@
  * Reset at the start of every test.
  * This is the max CHECKs in a SINGLE test, not the whole suite.
  * 256 is deliberately generous.
- * Tests with more than 265 checks should be split.
+ * Tests with more than 256 checks should be split.
  * Any overflow is dropped.
  */
-static hobo_check_record records[265];
+static hobo_check_record records[256];
 
 int hobo_test_run_suite(hobo_test_suite *suite, const hobo_reporter *reporter) {
   size_t count = 0;
